@@ -1,31 +1,43 @@
-#include <MyWifiSettings.h>
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-
 #define DEVICE_ID "PIR_TEST"
-#define NB_TRYWIFI    10
+#define PIN_PIR 5 // D1
+
+// Timer: Auxiliary variables
+//unsigned long now = millis();
+//unsigned long lastTrigger = 0;
+//boolean startTimer = false;
+
+boolean movementTriggered = false;
 
 void setup(void){
   Serial.begin(115200);
-  WiFi.begin(MYWIFISSID, MYWIFIPASSWORD);
+  wifiBegin();
 
-  Serial.println("Connecting to WiFi.");
-  int _try = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-    _try++;
-    if ( _try >= NB_TRYWIFI ) {
-        Serial.println("Impossible to connect WiFi network, go to deep sleep");
-        ESP.deepSleep(0);
-    }
-  }
-  Serial.println("Connected to the WiFi network");
+  //callMiddleware("pir", "");
 
-  callMiddleware("pir", "");
+  //ESP.deepSleep(0);
 
-  ESP.deepSleep(0);
+  // PIR Motion Sensor mode INPUT_PULLUP
+  pinMode(PIN_PIR, INPUT_PULLUP);
+  // Set motionSensor pin as interrupt, assign interrupt function and set RISING mode
+  attachInterrupt(digitalPinToInterrupt(PIN_PIR), detectsMovement, RISING);
 }
 
-void loop(void){}
+void loop(void){
+   wifiCheck();
+   checkMovement(); 
+}
+
+void checkMovement() {
+  if (movementTriggered) {
+    callMiddleware("pir", "");
+    movementTriggered = false;
+  }
+}
+
+ICACHE_RAM_ATTR void detectsMovement() {
+  Serial.println("MOTION DETECTED!!!");
+  movementTriggered = true;
+  //startTimer = true;
+  //lastTrigger = millis();
+}
 

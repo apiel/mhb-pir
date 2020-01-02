@@ -1,4 +1,5 @@
 #include <ESP8266HTTPClient.h>
+#include <ESP8266WiFi.h>
 
 void callUrl(String route, String params) {
     HTTPClient http;  //Declare an object of class HTTPClient
